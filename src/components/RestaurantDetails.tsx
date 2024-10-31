@@ -19,9 +19,8 @@ type RestaurantDetailsData = {
 const RestaurantDetails: React.FC<RestaurantDetailsProps> = ({
   restaurantId,
 }) => {
-  if (!restaurantId) return null;
 
-  const details = {
+  const [ details, setDetails ] = useState({
     address: "123 Fine St, London",
     openingHours: {
       weekday: "12:00 PM - 10:00 PM",
@@ -29,7 +28,17 @@ const RestaurantDetails: React.FC<RestaurantDetailsProps> = ({
     },
     reviewScore: 4.7,
     contactEmail: "info@velvetandvine.co.uk",
-  };
+  });
+
+  useEffect(() => {
+    const restaurantIDPromise = getRestaurantDetails(restaurantId);
+
+    restaurantIDPromise.then((restaurantDetails) => {
+      setDetails(restaurantDetails.details);
+    });
+  }, [restaurantId]);
+
+  if (!restaurantId) return null;
 
   return (
     <Container>
