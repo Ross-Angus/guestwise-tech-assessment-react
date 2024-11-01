@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ListGroup, Container } from "react-bootstrap";
+import RestaurantFilter from "./RestaurantFilter";
 import { getRestaurants } from "../services/api";
 
 type Restaurant = {
@@ -15,7 +16,7 @@ type RestaurantListProps = {
 const RestaurantList: React.FC<RestaurantListProps> = ({
   onRestaurantSelect,
 }) => {
-  // Populating the restaurant list with holding text
+  // The original full list of restaurants
   const [ restaurants, setRestaurants ] = useState([{
     id: 1,
     name: "Velvet & Vine",
@@ -34,20 +35,33 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
     },
   }]);
 
+  // As above, but the filtered version
+  const [ filteredRestaurants, setFilteredRestaurants ] = useState(restaurants);
+
   useEffect(() => {
     const restaurantPromise = getRestaurants();
 
     restaurantPromise.then((restaurantArray: []) => {
       setRestaurants(restaurantArray);
+      setFilteredRestaurants(restaurantArray);
     });
   }, []);
 
+  const handleFilterText = (filterText: string) => {
+    // If the search is empty, show all restaurants
+    if (filterText === '') {
+      setFilteredRestaurants(restaurants);
+    } else {
+      setFilteredRestaurants(filteredRestaurants.filter(restaurant => restaurant.name.toLowerCase().includes(filterText.toLowerCase())));
+    }
+  };
 
   return (
     <Container>
       <h2>Restaurants</h2>
+      <RestaurantFilter filter={handleFilterText}/>
       <ListGroup>
-        {restaurants.map((restaurant) => (
+        {filteredRestaurants.map((restaurant) => (
           <ListGroup.Item
             key={restaurant.id}
             action
