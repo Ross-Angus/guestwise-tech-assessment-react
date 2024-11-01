@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { Container } from "react-bootstrap";
 import NormaliseTime from "../tools/NormaliseTime";
-import type { BookingData, Errors } from "../types/Bookings";
+import type { BookingData, Errors, AllStringObject } from "../types/Bookings";
+import FormErrorMessages from "../text-content/FormErrorMessages";
+
+const messages: AllStringObject = FormErrorMessages();
 
 const BookTable: React.FC = ({}) => {
   // Today's date, converted to ISO string (YYYYMMDD), then converted
@@ -55,7 +58,7 @@ const BookTable: React.FC = ({}) => {
     if (bookingData.name.length < 2) {
       setErrors((prev: Errors) => ({
         ...prev,
-        "name": "You must provide a name"
+        "name": messages.noName
       }));
       formValid = false;
     } else {
@@ -69,7 +72,7 @@ const BookTable: React.FC = ({}) => {
     if (bookingData.email.indexOf('@') === -1 || bookingData.email.indexOf('.') === -1) {
       setErrors((prev: Errors) => ({
         ...prev,
-        "email": "Please provide a valid email address"
+        "email": messages.noEmail
       }));
       formValid = false;
     } else {
@@ -83,7 +86,7 @@ const BookTable: React.FC = ({}) => {
     if (bookingData.phone.length < 6) {
       setErrors((prev: Errors) => ({
         ...prev,
-        "phone": "Please provide a valid telephone number"
+        "phone": messages.noPhone
       }));
       formValid = false;
     } else {
@@ -97,7 +100,7 @@ const BookTable: React.FC = ({}) => {
     if (bookingData.date < nowISO) {
       setErrors((prev: Errors) => ({
         ...prev,
-        "date": "Please provide a date in the future"
+        "date": messages.datePast
       }));
       formValid = false;
     } else {
@@ -119,7 +122,7 @@ const BookTable: React.FC = ({}) => {
       if (bookedTime < earliestTime) {
         setErrors((prev: Errors) => ({
           ...prev,
-          "time": "Please provide a time in the future (and enough time for us to make your booking)"
+          "time": messages.timePast
         }));
         formValid = false;
       } else {
@@ -148,7 +151,7 @@ const BookTable: React.FC = ({}) => {
     if (bookingData.guests > 12) {
       setErrors((prev: Errors) => ({
         ...prev,
-        "guests": "We can't take bookings for over twelve people using this form. Please contact the restaurant directly to make this booking."
+        "guests": messages.largeParty
       }));
       formValid = false;
     } else {
