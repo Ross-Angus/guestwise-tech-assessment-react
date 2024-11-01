@@ -1,35 +1,7 @@
 import React, { useState } from "react";
 import { Container } from "react-bootstrap";
-
-type BookingData = {
-  name: string;
-  email: string;
-  phone: string;
-  date: string;
-  time: string;
-  guests: number;
-}
-
-type Errors = {
-  name: string;
-  email: string;
-  phone: string;
-  date: string;
-  time: string;
-  guests: string;
-}
-
-// Accepts time in the format `12:34`.
-// Normalises times such as `1:5` into `01:05`.
-const normaliseTime = (time: string): string => {
-  if (time.length < 5) {
-    let [hours, minutes] = time.split(':');
-    if (hours.length < 2) hours = `0${hours}`;
-    if (minutes.length < 2) minutes = `0${minutes}`;
-    time = `${hours}:${minutes}`;
-  }
-  return time;
-};
+import NormaliseTime from "../tools/NormaliseTime";
+import type { BookingData, Errors } from "../types/Bookings";
 
 const BookTable: React.FC = ({}) => {
   // Today's date, converted to ISO string (YYYYMMDD), then converted
@@ -140,8 +112,8 @@ const BookTable: React.FC = ({}) => {
     if (bookingData.date === nowISO) {
       // One hour from now, in the format HH:MM
       let earliestTime = `${currentHour + 1}:${currentMinutes}`;
-      earliestTime = normaliseTime(earliestTime);
-      const bookedTime = normaliseTime(bookingData.time);
+      earliestTime = NormaliseTime(earliestTime);
+      const bookedTime = NormaliseTime(bookingData.time);
 
       // Booking is for the past
       if (bookedTime < earliestTime) {
