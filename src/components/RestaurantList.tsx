@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ListGroup, Container } from "react-bootstrap";
 import RestaurantFilter from "./RestaurantFilter";
+import RestaurantSort from "./RestaurantSort";
 import { getRestaurants } from "../services/api";
 
 type Restaurant = {
@@ -56,10 +57,15 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
     }
   };
 
+  const handleSort = (sortBy: string) => {
+    console.log(sortBy);
+  };
+
   return (
     <Container>
       <h2>Restaurants</h2>
       <RestaurantFilter filter={handleFilterText}/>
+      <RestaurantSort sort={handleSort}/>
       <ListGroup>
         {filteredRestaurants.map((restaurant) => (
           <ListGroup.Item
