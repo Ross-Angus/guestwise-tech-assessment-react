@@ -2,13 +2,8 @@ import React, { useState, useEffect } from "react";
 import { ListGroup, Container } from "react-bootstrap";
 import RestaurantFilter from "./RestaurantFilter";
 import RestaurantSort from "./RestaurantSort";
+import { CompareNamesAZ, CompareNamesZA, CompareRateHiLo, CompareRateLoHi } from "../tools/Comparisons";
 import { getRestaurants } from "../services/api";
-
-type Restaurant = {
-  id: number;
-  name: string;
-  shortDescription: string;
-};
 
 type RestaurantListProps = {
   onRestaurantSelect: (id: number) => void;
@@ -57,8 +52,26 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
     }
   };
 
+  // Calling sorting functions for restaurant list
   const handleSort = (sortBy: string) => {
-    console.log(sortBy);
+    switch (sortBy) {
+      case 'A-Z':
+        filteredRestaurants.sort(CompareNamesAZ);
+        setFilteredRestaurants([...filteredRestaurants]); // Trigger a re-render
+        break;
+      case 'Z-A':
+        filteredRestaurants.sort(CompareNamesZA);
+        setFilteredRestaurants([...filteredRestaurants]);
+        break;
+      case 'High to low':
+        filteredRestaurants.sort(CompareRateHiLo);
+        setFilteredRestaurants([...filteredRestaurants]);
+        break;
+      case 'Low to high':
+        filteredRestaurants.sort(CompareRateLoHi);
+        setFilteredRestaurants([...filteredRestaurants]);
+        break;
+    }
   };
 
   return (
