@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { ListGroup, Container } from "react-bootstrap";
+import Alert from 'react-bootstrap/Alert';
 import type { Restaurant } from "../types/Restaurant";
 import { getRestaurants } from "../services/api";
 import RestaurantFilter from "./RestaurantFilter";
 import RestaurantSort from "./RestaurantSort";
 import { CompareNamesAZ, CompareNamesZA, CompareRateHiLo, CompareRateLoHi } from "../tools/Comparisons";
 import GetRestaurantsFromCache from "../tools/GetRestaurantsFromCache";
-import CatLoading from "../img/cat-loading.jpg";
 
 type RestaurantListProps = {
   onRestaurantSelect: (id: number) => void;
@@ -34,14 +34,12 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
     },
   }]);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadError, setIsLoadError] = useState(false);
-
   // As above, but the filtered version
   const [ filteredRestaurants, setFilteredRestaurants ] = useState<Restaurant[]>(restaurants);
+  const [userMessage, setUserMessage] = useState('We\'re loading a list of restaurants for you right now.');
 
   useEffect(() => {
-    setIsLoading(true);
+    const timer = setTimeout(() => setUserMessage('The remote server is being a bit slow, but we\'re still trying to load your restaurants.'), 3000);
     // Call the restaurant list from the cache and set the maximum
     // age to 100 hours
     const cachedRestaurants = GetRestaurantsFromCache(100);
@@ -51,6 +49,8 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
       const restaurantPromise = getRestaurants();
 
       restaurantPromise.then((restaurantArray: []) => {
+        clearTimeout(timer);
+        setUserMessage('');
         setRestaurants(restaurantArray);
         setFilteredRestaurants(restaurantArray);
         // Set up local storage cache
@@ -58,13 +58,15 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
         localStorage.setItem("restaurantListAge", '' + new Date().getTime());
       })
       .catch(() => {
-        setIsLoadError(true);
+        clearTimeout(timer);
+        setUserMessage('I\'m afraid the remote server isn\'t responding.');
       });
     } else {
+      clearTimeout(timer);
+      setUserMessage('');
       setRestaurants(cachedRestaurants);
       setFilteredRestaurants(cachedRestaurants);
     }
-    setIsLoading(false);
   }, []);
 
   const handleFilterText = (filterText: string) => {
@@ -101,8 +103,7 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
   return (
     <Container>
       <h2>Restaurants</h2>
-      {isLoading && <figure><p><img src={CatLoading} width="800" height="800" alt="A cat sits on a dining table looking displeased."/></p><figcaption>Please look at this cat while we load the list of restaurants. Photography by <a href="https://unsplash.com/@plhnk" target="_blank" rel="noreferrer">Paul Hanaoka</a>.</figcaption></figure>}
-      {isLoadError && <figure><p><img src={CatLoading} width="800" height="800" alt="A cat sits on a dining table looking displeased."/></p><figcaption>The remote server cannot be contacted. Please enjoy this cat as compensation. Photography by <a href="https://unsplash.com/@plhnk" target="_blank" rel="noreferrer">Paul Hanaoka</a>.</figcaption></figure>}
+      {userMessage !== '' && <Alert variant="info">{userMessage}</Alert>}
       <RestaurantFilter filter={handleFilterText}/>
       <RestaurantSort sort={handleSort}/>
       <ListGroup>
