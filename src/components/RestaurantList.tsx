@@ -35,6 +35,7 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
   }]);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadError, setIsLoadError] = useState(false);
 
   // As above, but the filtered version
   const [ filteredRestaurants, setFilteredRestaurants ] = useState<Restaurant[]>(restaurants);
@@ -55,6 +56,9 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
         // Set up local storage cache
         localStorage.setItem("restaurantList", JSON.stringify(restaurantArray));
         localStorage.setItem("restaurantListAge", '' + new Date().getTime());
+      })
+      .catch(() => {
+        setIsLoadError(true);
       });
     } else {
       setRestaurants(cachedRestaurants);
@@ -98,6 +102,7 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
     <Container>
       <h2>Restaurants</h2>
       {isLoading && <figure><p><img src={CatLoading} width="800" height="800" alt="A cat sits on a dining table looking displeased."/></p><figcaption>Please look at this cat while we load the list of restaurants. Photography by <a href="https://unsplash.com/@plhnk" target="_blank" rel="noreferrer">Paul Hanaoka</a>.</figcaption></figure>}
+      {isLoadError && <figure><p><img src={CatLoading} width="800" height="800" alt="A cat sits on a dining table looking displeased."/></p><figcaption>The remote server cannot be contacted. Please enjoy this cat as compensation. Photography by <a href="https://unsplash.com/@plhnk" target="_blank" rel="noreferrer">Paul Hanaoka</a>.</figcaption></figure>}
       <RestaurantFilter filter={handleFilterText}/>
       <RestaurantSort sort={handleSort}/>
       <ListGroup>
