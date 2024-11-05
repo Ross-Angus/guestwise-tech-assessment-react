@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { ListGroup, Container } from "react-bootstrap";
+import type { Restaurant } from "../types/Restaurant";
+import { getRestaurants } from "../services/api";
 import RestaurantFilter from "./RestaurantFilter";
 import RestaurantSort from "./RestaurantSort";
 import { CompareNamesAZ, CompareNamesZA, CompareRateHiLo, CompareRateLoHi } from "../tools/Comparisons";
-import { getRestaurants } from "../services/api";
+import GetRestaurantsFromCache from "../tools/GetRestaurantsFromCache";
+import CatLoading from "../img/cat-loading.jpg";
 
 type RestaurantListProps = {
   onRestaurantSelect: (id: number) => void;
@@ -13,7 +16,7 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
   onRestaurantSelect,
 }) => {
   // The original full list of restaurants
-  const [ restaurants, setRestaurants ] = useState([{
+  const [ restaurants, setRestaurants ] = useState<Restaurant[]>([{
     id: 1,
     name: "Velvet & Vine",
     shortDescription: "A fine dining experience with a modern twist.",
@@ -31,16 +34,33 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
     },
   }]);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   // As above, but the filtered version
-  const [ filteredRestaurants, setFilteredRestaurants ] = useState(restaurants);
+  const [ filteredRestaurants, setFilteredRestaurants ] = useState<Restaurant[]>(restaurants);
 
   useEffect(() => {
-    const restaurantPromise = getRestaurants();
+    setIsLoading(true);
+    // Call the restaurant list from the cache and set the maximum
+    // age to 100 hours
+    const cachedRestaurants = GetRestaurantsFromCache(100);
 
-    restaurantPromise.then((restaurantArray: []) => {
-      setRestaurants(restaurantArray);
-      setFilteredRestaurants(restaurantArray);
-    });
+    // We do not have any cached restaurants (or the cache is too old)
+    if (!cachedRestaurants.length) {
+      const restaurantPromise = getRestaurants();
+
+      restaurantPromise.then((restaurantArray: []) => {
+        setRestaurants(restaurantArray);
+        setFilteredRestaurants(restaurantArray);
+        // Set up local storage cache
+        localStorage.setItem("restaurantList", JSON.stringify(restaurantArray));
+        localStorage.setItem("restaurantListAge", '' + new Date().getTime());
+      });
+    } else {
+      setRestaurants(cachedRestaurants);
+      setFilteredRestaurants(cachedRestaurants);
+    }
+    setIsLoading(false);
   }, []);
 
   const handleFilterText = (filterText: string) => {
@@ -77,6 +97,7 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
   return (
     <Container>
       <h2>Restaurants</h2>
+      {isLoading && <figure><p><img src={CatLoading} width="800" height="800" alt="A cat sits on a dining table looking displeased."/></p><figcaption>Please look at this cat while we load the list of restaurants. Photography by <a href="https://unsplash.com/@plhnk" target="_blank" rel="noreferrer">Paul Hanaoka</a>.</figcaption></figure>}
       <RestaurantFilter filter={handleFilterText}/>
       <RestaurantSort sort={handleSort}/>
       <ListGroup>
